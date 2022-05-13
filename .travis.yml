@@ -1,0 +1,8 @@
+language: python
+python:
+  - "3.6"
+install:
+  - "pip install flask coveralls pytest pytest-cov pytest-flask"
+script: "py.test -v --cov-report term-missing --cov flask_markdown/tests"
+after_success:
+  - coveralls
