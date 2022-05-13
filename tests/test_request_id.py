@@ -3,6 +3,7 @@
 """Tests for request-id-flask."""
 
 import flask
+from flask import request
 from request_id import RequestId
 import unittest
 import uuid
@@ -12,13 +13,14 @@ class RequestIdTestCase(unittest.TestCase):
 
     def setUp(self):
         self.app = flask.Flask(__name__)
+        self.header_name = 'X-Request-ID'
 
         @self.app.route('/')
         def index():
-            return 'Hello, World'
+            request_id = request.environ.get('REQUEST_ID', '')
+            return str(request_id)
 
         RequestId(self.app)
-        self.header_name = 'X-Request-ID'
 
     def test_header_returned(self):
         with self.app.test_client() as c:
@@ -55,4 +57,14 @@ class RequestIdTestCase(unittest.TestCase):
                         r.headers.get(self.header_name), version=4
                     )
                 )
+            )
+
+    def test_id_in_environ(self):
+        with self.app.test_client() as c:
+            r = c.get('/', headers={
+                self.header_name: '123'
+            })
+            self.assertEqual(
+                '123',
+                r.get_data(as_text=True)
             )

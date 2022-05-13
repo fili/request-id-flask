@@ -34,9 +34,18 @@ The `REQUEST_ID` is stored in the request `environ` dictionary and may be access
 ## Usage
 
 ```python
-from flask import Flask
+from flask import (
+    Flask,
+    request
+)
 from request_id import RequestId
 
 app = Flask(__name__)
 RequestId(app)
+
+
+@app.route('/')
+def index():
+    request_id = request.environ.get('REQUEST_ID', '')
+    return str(request_id)
 ```

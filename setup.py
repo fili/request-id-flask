@@ -11,7 +11,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='request-id-flask',
-    version='0.0.1',
+    version='0.0.2',
     description='Receive and return the value of HTTP X-Request-ID header.',
     long_description=read_me,
     long_description_content_type='text/markdown',
