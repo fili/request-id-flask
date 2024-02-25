@@ -21,14 +21,18 @@ The package will do one of two things:
 You can install the request-id-flask package using pip:
 
 ```shell
-pip install flask-ext-request-id
+pip install request-id-flask
 ```
 
-However, recommended to add it to the `requirements.txt` file instead.
+However, recommended to add it to the `requirements.txt` file instead, and install using: `pip install -r requirements.txt`
+```
+request-id-flask~=0.0.3
+```
 
 ## Access the request_id
 
 The `REQUEST_ID` is stored in the request `environ` dictionary and may be accessed from anywhere this is available in Flask.
+Version `0.0.3` adds support for the [app factory pattern](https://flask.palletsprojects.com/en/2.3.x/patterns/appfactories/).
 
 
 ## Usage

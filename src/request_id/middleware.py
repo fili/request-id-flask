@@ -11,11 +11,6 @@ class RequestId(object):
         # Load configuration
         if app is not None:
             self.init_app(app)
-        # Define header names
-        self._header = app.config.get('REQUEST_ID_HEADER_NAME')
-        # Set wsgi
-        self.app = app.wsgi_app
-        app.wsgi_app = self
 
     def init_app(self, app):
         # Set configuration
@@ -23,6 +18,11 @@ class RequestId(object):
             'REQUEST_ID_HEADER_NAME',
             'X-Request-ID'
         )
+        # Define header names
+        self._header = app.config.get('REQUEST_ID_HEADER_NAME')
+        # Set wsgi
+        self.app = app.wsgi_app
+        app.wsgi_app = self
 
     def __call__(self, environ, start_response):
         # Reading request headers
