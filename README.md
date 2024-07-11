@@ -36,8 +36,8 @@ The `REQUEST_ID` is stored in the request `environ` dictionary and may be access
 
 ## Changelog
 
-- Version 0.0.4 adds support for (Quart)[https://palletsprojects.com/p/quart/].
-- Version 0.0.3 adds support for the (app factory pattern)[https://flask.palletsprojects.com/en/2.3.x/patterns/appfactories/].
+- Version 0.0.4 adds support for [Quart](https://palletsprojects.com/p/quart/).
+- Version 0.0.3 adds support for the [app factory pattern](https://flask.palletsprojects.com/en/2.3.x/patterns/appfactories/).
 
 
 ## Flask Usage
