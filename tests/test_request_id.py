@@ -1,9 +1,12 @@
-#-*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 
-"""Tests for request-id-flask."""
+"""Tests for request-id middleware (Flask and Quart)."""
 
+import asyncio
 import flask
-from flask import request
+import quart
+from flask import request as flask_request
+from quart import request as quart_request
 from request_id import RequestId
 import unittest
 import uuid
@@ -12,59 +15,90 @@ import uuid
 class RequestIdTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.app = flask.Flask(__name__)
         self.header_name = 'X-Request-ID'
 
-        @self.app.route('/')
-        def index():
-            request_id = request.environ.get('REQUEST_ID', '')
+        # Flask setup
+        self.flask_app = flask.Flask(__name__)
+
+        @self.flask_app.route('/')
+        def flask_index():
+            request_id = flask_request.environ.get('REQUEST_ID', '')
             return str(request_id)
 
-        RequestId(self.app)
+        RequestId(self.flask_app)
 
-    def test_header_returned(self):
-        with self.app.test_client() as c:
-            r = c.get('/', headers={
-                self.header_name: '123'
-            })
-            self.assertTrue(
-                bool(self.header_name in list(r.headers.keys()))
-            )
+        # Quart setup
+        self.quart_app = quart.Quart(__name__)
 
-    def test_id_returned(self):
-        with self.app.test_client() as c:
-            r = c.get('/', headers={
-                self.header_name: '123'
-            })
-            self.assertEqual(
-                '123',
-                r.headers.get(self.header_name)
-            )
+        @self.quart_app.route('/')
+        async def quart_index():
+            request_id = quart_request.scope.get('request_id', '')
+            return str(request_id)
 
-    def test_generated_header(self):
-        with self.app.test_client() as c:
+        RequestId(self.quart_app)
+
+    def test_flask_header_returned(self):
+        with self.flask_app.test_client() as c:
+            r = c.get('/', headers={self.header_name: '123'})
+            self.assertIn(self.header_name, r.headers)
+
+    def test_flask_id_returned(self):
+        with self.flask_app.test_client() as c:
+            r = c.get('/', headers={self.header_name: '123'})
+            self.assertEqual('123', r.headers.get(self.header_name))
+
+    def test_flask_generated_header(self):
+        with self.flask_app.test_client() as c:
+            r = c.get('/')
+            self.assertIn(self.header_name, r.headers)
+
+    def test_flask_generated_id(self):
+        with self.flask_app.test_client() as c:
             r = c.get('/')
             self.assertTrue(
-                bool(self.header_name in list(r.headers.keys()))
-            )
+                uuid.UUID(r.headers.get(self.header_name), version=4))
 
-    def test_generated_id(self):
-        with self.app.test_client() as c:
-            r = c.get('/')
-            self.assertTrue(
-                bool(
-                    uuid.UUID(
-                        r.headers.get(self.header_name), version=4
-                    )
-                )
-            )
+    def test_flask_id_in_environ(self):
+        with self.flask_app.test_client() as c:
+            r = c.get('/', headers={self.header_name: '123'})
+            self.assertEqual('123', r.get_data(as_text=True))
 
-    def test_id_in_environ(self):
-        with self.app.test_client() as c:
-            r = c.get('/', headers={
-                self.header_name: '123'
-            })
-            self.assertEqual(
-                '123',
-                r.get_data(as_text=True)
-            )
+    def test_quart_header_returned(self):
+        async def run_test():
+            async with self.quart_app.test_client() as c:
+                r = await c.get('/', headers={self.header_name: '123'})
+                self.assertIn(self.header_name, r.headers)
+        asyncio.run(run_test())
+
+    def test_quart_id_returned(self):
+        async def run_test():
+            async with self.quart_app.test_client() as c:
+                r = await c.get('/', headers={self.header_name: '123'})
+                self.assertEqual('123', r.headers.get(self.header_name))
+        asyncio.run(run_test())
+
+    def test_quart_generated_header(self):
+        async def run_test():
+            async with self.quart_app.test_client() as c:
+                r = await c.get('/')
+                self.assertIn(self.header_name, r.headers)
+        asyncio.run(run_test())
+
+    def test_quart_generated_id(self):
+        async def run_test():
+            async with self.quart_app.test_client() as c:
+                r = await c.get('/')
+                self.assertTrue(
+                    uuid.UUID(r.headers.get(self.header_name), version=4))
+        asyncio.run(run_test())
+
+    def test_quart_id_in_scope(self):
+        async def run_test():
+            async with self.quart_app.test_client() as c:
+                r = await c.get('/', headers={self.header_name: '123'})
+                self.assertEqual('123', await r.get_data(as_text=True))
+        asyncio.run(run_test())
+
+
+if __name__ == '__main__':
+    unittest.main()
